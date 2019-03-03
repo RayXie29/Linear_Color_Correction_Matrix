@@ -103,7 +103,7 @@ void LCC_CMC(cv::Mat &img)
     cv::Mat ReferenceColor(24, 3, CV_32FC1, cv::Scalar(0));
     
     std::fstream infile;
-    infile.open("ReferenceColor.csv", std::ios::in);
+    infile.open("./ref/ReferenceColor.csv", std::ios::in);
     
     if (!infile)
     {
@@ -136,7 +136,7 @@ void LCC_CMC(cv::Mat &img)
     cv::Mat ColorMatrix(3, 3, CV_32FC1, cv::Scalar(0));
     ColorMatrix = temp.inv() * O_T * ReferenceColor;
     
-    std::fstream CMC("LCC_CMC.csv", std::ios::out);
+    std::fstream CMC("./ref/LCC_CMC.csv", std::ios::out);
     
     if (!CMC)
     {
@@ -159,3 +159,59 @@ void LCC_CMC(cv::Mat &img)
     CMC.close();
     
 }
+
+
+void LCC(cv::Mat &img,cv::Mat &Dst)
+{
+    int i = 0, j = 0;
+    int channels = img.channels();
+    int ImgHeight = img.rows, ImgWidth = img.cols;
+    std::fstream CMC("./ref/LCC_CMC.csv", std::ios::in);
+    
+    if (!CMC)
+    {
+        std::cerr << "Open the file error" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    
+    cv::Mat ColorMatrix(3, 3, CV_32FC1, cv::Scalar(0));
+    
+    std::string textline;
+    while (getline(CMC, textline))
+    {
+        std::string::size_type pos = 0, prev_pos = 0;
+        float *CMCPtr = ColorMatrix.ptr<float>(i);
+        j = 0;
+        while ((pos = textline.find_first_of(',', pos)) != std::string::npos)
+        {
+            CMCPtr[j++] = std::stof(textline.substr(prev_pos, pos - prev_pos));
+            prev_pos = ++pos;
+        }
+        i++;
+    }
+    CMC.close();
+    
+    
+    Dst = img.clone();
+    
+    float *CMC_1 = ColorMatrix.ptr<float>(0);
+    float *CMC_2 = ColorMatrix.ptr<float>(1);
+    float *CMC_3 = ColorMatrix.ptr<float>(2);
+    
+    for (i = 0; i < ImgHeight; ++i)
+    {
+        uchar *SP = img.ptr<uchar>(i);
+        uchar *DP = Dst.ptr<uchar>(i);
+        for (j = 0; j < ImgWidth*channels; j += 3)
+        {
+            DP[j] = cv::saturate_cast<uchar>(SP[j] * CMC_1[0] + SP[j + 1] * CMC_2[0] + SP[j+2] * CMC_3[0]);
+            DP[j+1] = cv::saturate_cast<uchar>(SP[j] * CMC_1[1] + SP[j + 1] * CMC_2[1] + SP[j+2] * CMC_3[1]);
+            DP[j+2] = cv::saturate_cast<uchar>(SP[j] * CMC_1[2] + SP[j + 1] * CMC_2[2] + SP[j+2] * CMC_3[2]);
+        }
+    }
+    
+}
+
+
+
+
