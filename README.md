@@ -6,7 +6,7 @@ The image have not been corrected might be like this:<br />
 
 After it generates the color correction matrix by function "LCC_CMC", its ISP can use this specific color correction matrix for color correction in the future.<br />
  
-The image had been correction like this:<br />
+The image had been corrected like this:<br />
 ![alt text](https://raw.githubusercontent.com/RayXie29/Linear_Color_Correction_Matrix/master/imgs/result.bmp)
 
 The "ReferenceColor.csv" file is the reference color value we want to refer and the "LCC_CMC.csv" file is the color correction matrix.<br />
